@@ -49,7 +49,7 @@ function DaysList({ daysData }) {
             count++;
             return (
               <li key={count}>
-                <i className={`bx ${isDay ? weatherIconMap[iconCode.replace('n', 'd')] : weatherIconMap[iconCode]}`}></i>
+                <i className={`bx ${isDay ? weatherIconMap[iconCode.replace('d', 'n')] : weatherIconMap[iconCode]}`}></i>
                 <span>{dayAbbreviation}</span>
                 <span className="day-temp">{dayTemp}</span>
               </li>
