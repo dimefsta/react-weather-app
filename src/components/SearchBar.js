@@ -6,44 +6,54 @@ function SearchBar({ onSelectLocation }) {
   const [suggestions, setSuggestions] = useState([]);
   const [isSuggestionsVisible, setSuggestionsVisible] = useState(false);
 
-  useEffect(() => {
-    if (query.length > 2) {
-      // Simulate fetching suggestions
-      fetchSuggestions(query).then((results) => {
-        setSuggestions(results);
-        setSuggestionsVisible(true);
-      });
-    } else {
-      setSuggestions([]);
-      setSuggestionsVisible(false);
-    }
-  }, [query]);
-
+  // Function to fetch city suggestions with more details
   const fetchSuggestions = async (query) => {
-    // Replace with actual API call
-    return [
-      'New York',
-      'Newport',
-      'New Orleans',
-      // Other suggestions
-    ].filter(location => location.toLowerCase().includes(query.toLowerCase()));
+    if (!query || query.length <= 2) return;
+
+    const apiKey = process.env.REACT_APP_WEATHER_API_KEY;
+    const apiUrl = `https://api.openweathermap.org/data/2.5/find?q=${query}&type=like&sort=population&cnt=5&appid=${apiKey}&units=metric`;
+
+    try {
+      const response = await fetch(apiUrl);
+      const data = await response.json();
+      if (data && data.list) {
+        const formattedSuggestions = data.list.map(city => ({
+          name: city.name,
+          country: city.sys.country,
+          state: city.state || '',
+          fullDisplay: `${city.name}, ${city.state ? city.state + ', ' : ''}${city.sys.country}`
+        }));
+        setSuggestions(formattedSuggestions);
+        setSuggestionsVisible(true);
+      }
+    } catch (error) {
+      console.error('Error fetching city suggestions:', error);
+    }
   };
+
+  useEffect(() => {
+    fetchSuggestions(query);
+  }, [query]);
 
   const handleInputChange = (event) => {
     setQuery(event.target.value);
+    if (event.target.value.length <= 2) {
+      setSuggestionsVisible(false);
+    }
   };
 
   const handleSearch = () => {
     if (query) {
       onSelectLocation(query);
+      setSuggestionsVisible(false);
     }
   };
 
   const handleSuggestionClick = (suggestion) => {
-    setQuery(suggestion);
+    setQuery(suggestion.fullDisplay);
     setSuggestions([]);
     setSuggestionsVisible(false);
-    onSelectLocation(suggestion);
+    onSelectLocation(suggestion.name); // or suggestion.fullDisplay if more detail is needed
   };
 
   return (
@@ -57,11 +67,11 @@ function SearchBar({ onSelectLocation }) {
         />
         <button onClick={handleSearch}>Search</button>
       </div>
-      {isSuggestionsVisible && (
+      {isSuggestionsVisible && suggestions.length > 0 && (
         <ul className="suggestions-list">
           {suggestions.map((suggestion, index) => (
             <li key={index} onClick={() => handleSuggestionClick(suggestion)}>
-              {suggestion}
+              {suggestion.fullDisplay}
             </li>
           ))}
         </ul>
