@@ -5,7 +5,7 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
 }
 
 body {
@@ -28,7 +28,8 @@ body {
 }
 
 /* Flexbox Layout for .left-info and .right-info */
-.left-info, .right-info {
+.left-info,
+.right-info {
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -48,7 +49,8 @@ body {
 }
 
 /* Flexible Container for Today Info and Weather */
-.today-info, .today-weather {
+.today-info,
+.today-weather {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -62,7 +64,7 @@ body {
 /* Day Info - UPDATED */
 .day-info {
   display: flex;
-  justify-content: space-between;  /* Ensure items are spaced out */
+  justify-content: space-between; /* Ensure items are spaced out */
   padding: 20px;
   background-color: #333;
   border-radius: 10px;
@@ -150,12 +152,14 @@ body {
     padding: 15px;
   }
 
-  .left-info, .right-info {
+  .left-info,
+  .right-info {
     width: 100%;
     padding: 10px;
   }
 
-  .today-info, .today-weather {
+  .today-info,
+  .today-weather {
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
@@ -192,7 +196,8 @@ body {
     padding: 10px;
   }
 
-  .today-info, .today-weather {
+  .today-info,
+  .today-weather {
     flex-direction: column;
     align-items: flex-start;
   }
