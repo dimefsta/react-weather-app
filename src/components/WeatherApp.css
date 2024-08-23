@@ -164,4 +164,40 @@ body {
 
 
   
-  
+@media (max-width: 768px) {
+    .container {
+        width: 100%;
+        height: auto;
+        padding: 20px;
+        border-radius: 15px;
+    }
+
+    .left-info, .right-info {
+        width: 100%;
+        height: auto;
+        float: none;
+        display: block;
+        margin-bottom: 20px;
+    }
+
+    .left-info {
+        border-radius: 15px;
+        margin-bottom: 10px;
+    }
+
+    .days-list {
+        flex-direction: column;
+        margin: 10px 0;
+    }
+
+    .days-list li {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    .loc-button {
+        width: 100%;
+        padding: 15px;
+        font-size: 1rem;
+    }
+}

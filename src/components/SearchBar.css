@@ -1,9 +1,12 @@
+/* SearchBar.css */
+
 .search-bar-container {
   position: relative;
   margin: 20px 0;
   padding: 10px;
 }
 
+/* The search bar styles you already have */
 .search-bar {
   display: flex;
   align-items: center;
@@ -63,9 +66,67 @@
   padding: 10px;
   cursor: pointer;
   color: #333;
-  font-size: 14px; /* Adjust as needed */
+  font-size: 14px;
 }
 
 .suggestions-list li:hover {
   background: #eee;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .search-bar {
+    flex-direction: column;
+    padding: 8px;
+    max-width: 100%;
+  }
+
+  .search-bar input {
+    font-size: 14px;
+    padding: 8px;
+    width: 100%;
+    margin-bottom: 10px;
+    border-radius: 15px;
+  }
+
+  .search-bar button {
+    padding: 10px;
+    font-size: 14px;
+    width: 100%;
+    border-radius: 15px;
+  }
+
+  .suggestions-list {
+    font-size: 12px;
+    max-height: 150px;
+  }
+}
+
+@media (max-width: 480px) {
+  .search-bar-container {
+    margin: 10px 0;
+    padding: 5px;
+  }
+
+  .search-bar {
+    padding: 5px;
+    border-radius: 15px;
+  }
+
+  .search-bar input {
+    font-size: 12px;
+    padding: 6px;
+    border-radius: 10px;
+  }
+
+  .search-bar button {
+    padding: 8px;
+    font-size: 12px;
+    border-radius: 10px;
+  }
+
+  .suggestions-list {
+    font-size: 10px;
+    max-height: 120px;
+  }
 }
