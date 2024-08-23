@@ -19,7 +19,7 @@ body {
 
 .container {
   max-width: 100%;
-  width: 400px; /* Limit max width to make it look better on large screens */
+  width: 400px;
   background-color: #232931;
   color: #fff;
   border-radius: 25px;
@@ -59,12 +59,36 @@ body {
   font-size: 3.5rem;
 }
 
-/* Day Info */
+/* Day Info - UPDATED */
 .day-info {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  justify-content: space-between;  /* Ensure items are spaced out */
   padding: 20px;
+  background-color: #333;
+  border-radius: 10px;
+  color: #fff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.day-info > div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  padding: 10px;
+}
+
+.day-info .title {
+  font-weight: bold;
+  font-size: 14px;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+  color: #ccc;
+}
+
+.day-info .value {
+  font-size: 16px;
+  font-weight: 700;
 }
 
 /* Days List with Flexbox for Better Alignment */
