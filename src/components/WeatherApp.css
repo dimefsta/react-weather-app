@@ -62,9 +62,10 @@ body {
 }
 
 /* Day Info - UPDATED */
+/* Updated Day Info CSS */
 .day-info {
   display: flex;
-  justify-content: space-between; /* Ensure items are spaced out */
+  justify-content: space-around; /* Space out the sections evenly */
   padding: 20px;
   background-color: #333;
   border-radius: 10px;
@@ -75,23 +76,32 @@ body {
 .day-info > div {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: center; /* Center items horizontally */
+  text-align: center; /* Center text */
   flex: 1;
   padding: 10px;
 }
 
 .day-info .title {
-  font-weight: bold;
+  font-weight: 600;
   font-size: 14px;
-  margin-bottom: 5px;
+  margin-bottom: 8px;
   text-transform: uppercase;
   color: #ccc;
 }
 
 .day-info .value {
-  font-size: 16px;
+  font-size: 20px; /* Slightly larger font for values */
   font-weight: 700;
+  color: #fff;
 }
+
+/* Add subtle hover effect to make it interactive */
+.day-info > div:hover {
+  transform: scale(1.05);
+  transition: transform 0.3s ease;
+}
+
 
 /* Days List with Flexbox for Better Alignment */
 .days-list {
