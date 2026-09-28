@@ -1,8 +1,8 @@
 import { render, screen } from '@testing-library/react';
-import App from './App';
+import WeatherApp from './components/WeatherApp';
 
-test('renders learn react link', () => {
-  render(<App />);
-  const linkElement = screen.getByText(/learn react/i);
-  expect(linkElement).toBeInTheDocument();
+test('renders SkyPulse brand', () => {
+  render(<WeatherApp />);
+  const brandElements = screen.getAllByText(/SkyPulse/i);
+  expect(brandElements.length).toBeGreaterThan(0);
 });

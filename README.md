@@ -1,70 +1,101 @@
-# Getting Started with Create React App
+# 🌤️ SkyPulse — Modern React Weather App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+An ultra-sleek, responsive weather application built with **React 18**, **Lucide Icons**, and modern **Glassmorphism CSS**, powered by live global weather data with zero mandatory API configuration.
 
-## Available Scripts
+---
 
-In the project directory, you can run:
+## ✨ Features
 
-### `npm start`
+- **🎨 Modern Glassmorphism UI**: Frosted glass surfaces (`backdrop-filter: blur(24px)`), ambient gradient lighting, subtle borders, and smooth micro-interactions.
+- **🌈 Dynamic Weather-Reactive Themes**: Backgrounds and ambient lighting adapt automatically to current conditions:
+  - *Clear Sky (Day / Night)*, *Cloudy / Overcast*, *Rain / Drizzle*, *Thunderstorm*, *Snow / Frost*, and *Fog / Mist*.
+- **📍 Smart Autocomplete Search**: Debounced city lookup with country flags, admin regions, and full keyboard navigation (Arrow Up/Down, Enter, Esc).
+- **⏱️ 24-Hour Timeline Forecast**: Smooth horizontal scrollable hourly rail with temperature curves, weather icons, and precipitation probability.
+- **📅 7-Day Precision Forecast**: Daily weather conditions with dynamic proportional temperature range gradient bars.
+- **📊 Advanced Weather Metrics Grid**:
+  - **UV Index**: Live value with safety hazard rating & visual gauge.
+  - **Wind & Gusts**: Velocity with animated compass needle aligned to real wind direction (e.g. `SW 225°`).
+  - **Sun Schedule**: Sunrise & sunset times with active daylight progress tracker.
+  - **Humidity & Comfort**: Percentage, dew point, and air comfort classification.
+  - **Visibility & Barometric Pressure**: Distance in km/mi and atmospheric pressure in hPa.
+  - **Cloud Coverage**: Real-time sky cloud coverage percentage meter.
+- **⭐ Saved Favorite Cities**: Save favorite locations to `localStorage`, accessible via quick pill selectors with instant switching and removal.
+- **🧭 One-Tap GPS Geolocation**: Fast browser geolocation lookup using `navigator.geolocation` and reverse geocoding.
+- **🌡️ Unit Toggling**: Seamless one-click conversion between Celsius (`°C`) and Fahrenheit (`°F`) across all cards.
+- **🔄 Instant Auto-Refresh**: Live data reload with smooth spin indicator.
+- **💀 Shimmer Skeleton Loading & Resilient Error Handling**: Zero layout shift (CLS) during transitions, with graceful error recovery and quick fallback cities.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+---
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## 🛠️ Architecture & Tech Stack
 
-### `npm test`
+- **React 18.3** (Custom Hooks, Concurrent Features, StrictMode)
+- **Lucide React** (Clean, crisp, accessible SVG icon set)
+- **Open-Meteo API** (Keyless, zero-setup, real-time forecasts, hourly curves, UV index)
+- **OpenWeatherMap Integration Support** (Optional fallback via `REACT_APP_WEATHER_API_KEY`)
+- **Pure Modern CSS3** (CSS custom properties, glassmorphism, flexbox & grid, reduced-motion queries)
+- **Jest & React Testing Library** (Unit & component test coverage)
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+---
 
-### `npm run build`
+## 🚀 Getting Started
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### 1. Installation
+Clone the repository and install dependencies:
+```bash
+git clone https://github.com/dimefsta/react-weather-app.git
+cd react-weather-app
+npm install
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### 2. Run Locally
+```bash
+npm start
+```
+Open [http://localhost:3000](http://localhost:3000) to view the app in your browser.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### 3. Run Tests
+```bash
+npm test -- --watchAll=false
+```
 
-### `npm run eject`
+### 4. Build for Production
+```bash
+npm run build
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+---
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## 📁 Project Structure
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+```
+src/
+├── components/
+│   ├── CurrentWeather.jsx    # Hero card with temperature & condition artwork
+│   ├── DailyForecast.jsx     # 7-day forecast with proportional temp bars
+│   ├── ErrorMessage.jsx      # Glass error state with retry & fallback cities
+│   ├── FavoritesBar.jsx      # Saved city pills carousel
+│   ├── Header.jsx            # Top navbar, branding, actions & search
+│   ├── HourlyForecast.jsx    # 24-hour horizontal scrolling rail
+│   ├── SearchBar.jsx         # Debounced search input with autocomplete
+│   ├── SkeletonLoader.jsx    # Shimmer loading placeholder
+│   ├── WeatherApp.jsx        # Main application layout & theme coordinator
+│   ├── WeatherIcon.jsx       # Semantic weather icon resolver
+│   ├── WeatherMetrics.jsx    # 6-card advanced weather metrics grid
+│   └── WeatherApp.css        # Glassmorphism design system & dynamic themes
+├── hooks/
+│   ├── useFavorites.js       # LocalStorage favorites state manager
+│   └── useWeather.js         # Weather data fetcher, units & geolocation
+├── services/
+│   └── weatherService.js     # Unified API engine (Open-Meteo & OpenWeather)
+├── utils/
+│   └── weatherUtils.js       # Unit conversions, math & compass directions
+├── index.css                 # Global reset & typography
+├── index.js                  # React DOM entry point
+└── WeatherApp.test.js        # Comprehensive test suite
+```
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+---
 
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## 📄 License
+MIT

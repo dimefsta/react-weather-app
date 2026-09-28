@@ -1,7 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import 'boxicons/css/boxicons.min.css';
-import './index.css'; // You can keep or modify this
+import './index.css';
 import WeatherApp from './components/WeatherApp'; // Import your main WeatherApp component
 import reportWebVitals from './reportWebVitals';
 
