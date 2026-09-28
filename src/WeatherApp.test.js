@@ -1,7 +1,7 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import WeatherApp from './components/WeatherApp';
 import { formatTemp, formatSpeed, getCompassDirection, calculateSunProgress } from './utils/weatherUtils';
-import { getWeatherMeta } from './services/weatherService';
+import { getWeatherMeta, reverseGeocode, cleanLocality } from './services/weatherService';
 
 // Mock weather data
 const mockWeatherData = {
@@ -92,6 +92,67 @@ describe('Weather Utilities', () => {
     const thunderstorm = getWeatherMeta(95, 1);
     expect(thunderstorm.theme).toBe('thunderstorm');
   });
+
+  test('cleans locality strings and preserves suburbs like Palaio Faliro', () => {
+    expect(cleanLocality('Palaio Faliro', 'Athens')).toBe('Palaio Faliro');
+    expect(cleanLocality('4th District of Peristeri', 'Athens')).toBe('Peristeri');
+    expect(cleanLocality('', 'Athens')).toBe('Athens');
+  });
+
+  test('resolves precise suburb/neighborhood like Palaio Faliro instead of defaulting to Athens', async () => {
+    const originalFetch = global.fetch;
+    global.fetch = jest.fn((url) => {
+      if (String(url).includes('bigdatacloud')) {
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              locality: 'Palaio Faliro',
+              city: 'Athens',
+              countryName: 'Greece',
+              countryCode: 'GR',
+              principalSubdivision: 'Attiki',
+            }),
+        });
+      }
+      return Promise.reject(new Error('Unknown url'));
+    });
+
+    const result = await reverseGeocode(37.928, 23.698);
+    expect(result.name).toBe('Palaio Faliro');
+    expect(result.city).toBe('Athens');
+    expect(result.fullDisplay).toBe('Palaio Faliro, Athens, Greece');
+    global.fetch = originalFetch;
+  });
+
+  test('falls back to Nominatim when primary reverse geocoder is unavailable', async () => {
+    const originalFetch = global.fetch;
+    global.fetch = jest.fn((url) => {
+      if (String(url).includes('bigdatacloud')) {
+        return Promise.resolve({ ok: false, status: 500 });
+      }
+      if (String(url).includes('nominatim')) {
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              address: {
+                suburb: 'Palaio Faliro',
+                city: 'Athens',
+                country: 'Greece',
+                country_code: 'gr',
+              },
+            }),
+        });
+      }
+      return Promise.reject(new Error('Unknown url'));
+    });
+
+    const result = await reverseGeocode(37.928, 23.698);
+    expect(result.name).toBe('Palaio Faliro');
+    expect(result.countryCode).toBe('GR');
+    global.fetch = originalFetch;
+  });
 });
 
 describe('WeatherApp Component', () => {
@@ -116,6 +177,93 @@ describe('WeatherApp Component', () => {
 
     await waitFor(() => {
       expect(screen.getByText(/Humidity & Air/i)).toBeInTheDocument();
+    });
+  });
+
+  test('triggers geolocation with enableHighAccuracy: true on GPS button click', async () => {
+    const mockGetCurrentPosition = jest.fn();
+    global.navigator.geolocation = {
+      getCurrentPosition: mockGetCurrentPosition,
+    };
+
+    render(<WeatherApp />);
+    await waitFor(() => {
+      expect(screen.getByText(/Humidity & Air/i)).toBeInTheDocument();
+    });
+
+    const gpsBtn = screen.getByLabelText(/Use current location/i);
+    fireEvent.click(gpsBtn);
+
+    expect(mockGetCurrentPosition).toHaveBeenCalled();
+    const options = mockGetCurrentPosition.mock.calls[0][2];
+    expect(options).toMatchObject({ enableHighAccuracy: true });
+  });
+
+  test('displays friendly toast notification when location access is denied', async () => {
+    const mockGetCurrentPosition = jest.fn((success, error) => {
+      error({ code: 1, PERMISSION_DENIED: 1, message: 'User denied geolocation' });
+    });
+    global.navigator.geolocation = {
+      getCurrentPosition: mockGetCurrentPosition,
+    };
+
+    render(<WeatherApp />);
+    await waitFor(() => {
+      expect(screen.getByText(/Humidity & Air/i)).toBeInTheDocument();
+    });
+
+    const gpsBtn = screen.getByLabelText(/Use current location/i);
+    fireEvent.click(gpsBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Location permission was denied/i)).toBeInTheDocument();
+      expect(screen.getByText(/Search City/i)).toBeInTheDocument();
+    });
+  });
+
+  test('updates to precise suburb like Palaio Faliro on geolocation success', async () => {
+    const mockGetCurrentPosition = jest.fn((success) => {
+      success({
+        coords: {
+          latitude: 37.928,
+          longitude: 23.698,
+        },
+      });
+    });
+    global.navigator.geolocation = {
+      getCurrentPosition: mockGetCurrentPosition,
+    };
+
+    global.fetch = jest.fn((url) => {
+      if (String(url).includes('bigdatacloud')) {
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              locality: 'Palaio Faliro',
+              city: 'Athens',
+              countryName: 'Greece',
+              countryCode: 'GR',
+            }),
+        });
+      }
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve(mockWeatherData),
+      });
+    });
+
+    render(<WeatherApp />);
+    await waitFor(() => {
+      expect(screen.getByText(/Humidity & Air/i)).toBeInTheDocument();
+    });
+
+    const gpsBtn = screen.getByLabelText(/Use current location/i);
+    fireEvent.click(gpsBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Location detected: Palaio Faliro/i)).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Palaio Faliro' })).toBeInTheDocument();
     });
   });
 });

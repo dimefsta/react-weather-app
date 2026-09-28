@@ -11,6 +11,7 @@ import SearchBar from './SearchBar';
 function Header({
   onSelectLocation,
   onUseCurrentLocation,
+  isLocating = false,
   onRefresh,
   isRefreshing,
   unit,
@@ -20,6 +21,7 @@ function Header({
   onToggleFavorite,
   showFavoritesBar,
   onToggleFavoritesBar,
+  searchInputRef,
 }) {
   const isCurrentFav = currentLocation && isFavorite(currentLocation.name);
 
@@ -38,7 +40,7 @@ function Header({
       </div>
 
       <div className="header-center relative z-50 overflow-visible">
-        <SearchBar onSelectLocation={onSelectLocation} />
+        <SearchBar onSelectLocation={onSelectLocation} searchInputRef={searchInputRef} />
       </div>
 
       <div className="header-right">
@@ -69,10 +71,11 @@ function Header({
         {/* Use Geolocation */}
         <button
           type="button"
-          className="action-btn"
+          className={`action-btn ${isLocating ? 'locating spinning active' : ''}`}
           onClick={onUseCurrentLocation}
-          title="Use my current GPS location"
-          aria-label="Use current location"
+          disabled={isLocating}
+          title={isLocating ? 'Detecting your GPS location...' : 'Use my current GPS location'}
+          aria-label={isLocating ? 'Detecting location' : 'Use current location'}
         >
           <Navigation size={18} />
         </button>

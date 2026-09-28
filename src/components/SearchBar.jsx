@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Search, MapPin, X, Loader2 } from 'lucide-react';
 import { searchCities } from '../services/weatherService';
 
-function SearchBar({ onSelectLocation }) {
+function SearchBar({ onSelectLocation, searchInputRef }) {
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -10,7 +10,8 @@ function SearchBar({ onSelectLocation }) {
   const [activeIndex, setActiveIndex] = useState(-1);
 
   const containerRef = useRef(null);
-  const inputRef = useRef(null);
+  const internalInputRef = useRef(null);
+  const inputRef = searchInputRef || internalInputRef;
 
   // Debounced search
   useEffect(() => {

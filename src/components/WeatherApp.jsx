@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useWeather } from '../hooks/useWeather';
 import { useFavorites } from '../hooks/useFavorites';
 import Header from './Header';
@@ -9,13 +9,19 @@ import DailyForecast from './DailyForecast';
 import WeatherMetrics from './WeatherMetrics';
 import SkeletonLoader from './SkeletonLoader';
 import ErrorMessage from './ErrorMessage';
+import Toast from './Toast';
 import './WeatherApp.css';
 
 function WeatherApp() {
+  const searchInputRef = useRef(null);
+
   const {
     weatherData,
     loading,
+    isLocating,
     error,
+    toast,
+    clearToast,
     unit,
     toggleUnit,
     selectLocation,
@@ -43,11 +49,24 @@ function WeatherApp() {
         <div className="ambient-blob blob-3" />
       </div>
 
+      {/* Notifications / Toast Feedback */}
+      <Toast
+        toast={toast}
+        onClose={clearToast}
+        onAction={() => {
+          if (searchInputRef.current) {
+            searchInputRef.current.focus();
+            searchInputRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }}
+      />
+
       <div className="app-container">
         {/* Top Header & Search Navigation */}
         <Header
           onSelectLocation={selectLocation}
           onUseCurrentLocation={useCurrentLocation}
+          isLocating={isLocating}
           onRefresh={refreshWeather}
           isRefreshing={loading}
           unit={unit}
@@ -57,6 +76,7 @@ function WeatherApp() {
           onToggleFavorite={toggleFavorite}
           showFavoritesBar={showFavoritesBar}
           onToggleFavoritesBar={() => setShowFavoritesBar((prev) => !prev)}
+          searchInputRef={searchInputRef}
         />
 
         {/* Favorite Cities Quick Access Bar */}

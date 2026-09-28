@@ -86,30 +86,130 @@ export const searchCities = async (query) => {
   }
 };
 
-// Reverse Geocode from Coordinates
+// Helper to extract clean and specific locality or suburb name
+export const cleanLocality = (locality, city) => {
+  if (!locality) return city || '';
+  const districtMatch = locality.match(/\b(?:district|arrondissement|borough|ward)\s+of\s+(.+)$/i);
+  if (districtMatch && districtMatch[1]) {
+    return districtMatch[1].trim();
+  }
+  return locality.trim();
+};
+
+// Reverse Geocode from Coordinates (with neighborhood/suburb precision)
 export const reverseGeocode = async (latitude, longitude) => {
+  // 1. Primary: BigDataCloud free client-side reverse geocoding
   try {
-    // Try BigDataCloud free client-side reverse geocoding
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 4000);
+    if (timeoutId && typeof timeoutId.unref === 'function') timeoutId.unref();
     const url = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`;
-    const response = await fetch(url);
+    const response = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeoutId);
+
     if (response.ok) {
       const data = await response.json();
+
+      // Determine the most specific name: locality / suburb / neighborhood
+      let preciseName = cleanLocality(data.locality, data.city);
+
+      // If locality is missing or same as city, check administrative subdivisions for higher precision (e.g. suburb/neighborhood level)
+      if ((!preciseName || preciseName.toLowerCase() === (data.city || '').toLowerCase()) && data.localityInfo?.administrative) {
+        const admins = [...data.localityInfo.administrative].reverse();
+        for (const adm of admins) {
+          if (adm.name && (adm.adminLevel >= 7 || (adm.order >= 9 && adm.name !== data.countryName))) {
+            const candidate = cleanLocality(adm.name, data.city);
+            if (candidate && candidate !== data.countryName && candidate !== data.principalSubdivision) {
+              preciseName = candidate;
+              break;
+            }
+          }
+        }
+      }
+
+      const finalName = preciseName || data.city || data.principalSubdivision || 'Current Location';
+      const city = data.city || '';
+      const country = data.countryName || '';
+      const countryCode = data.countryCode || '';
+      const admin1 = (city && city.toLowerCase() !== finalName.toLowerCase()) ? city : (data.principalSubdivision || '');
+
+      const fullDisplayParts = [finalName];
+      if (city && city.toLowerCase() !== finalName.toLowerCase()) fullDisplayParts.push(city);
+      if (country) fullDisplayParts.push(country);
+
       return {
-        name: data.city || data.locality || data.principalSubdivision || 'Current Location',
-        country: data.countryName || '',
-        countryCode: data.countryCode || '',
-        admin1: data.principalSubdivision || '',
+        name: finalName,
+        city,
+        country,
+        countryCode,
+        admin1,
         latitude,
         longitude,
-        fullDisplay: `${data.city || data.locality || 'Current Location'}, ${data.countryName || ''}`,
+        fullDisplay: fullDisplayParts.join(', '),
       };
     }
   } catch (e) {
-    console.warn('Reverse geocode error, using coordinates fallback:', e);
+    console.warn('BigDataCloud reverse geocode error or timeout:', e.message);
   }
 
+  // 2. Secondary fallback: OpenStreetMap Nominatim reverse geocode
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 4000);
+    if (timeoutId && typeof timeoutId.unref === 'function') timeoutId.unref();
+    const nomUrl = `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=en`;
+    const response = await fetch(nomUrl, {
+      headers: { 'User-Agent': 'SkyPulseWeatherApp/1.0 (ReactWeatherApp)' },
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+
+    if (response.ok) {
+      const data = await response.json();
+      const addr = data.address || {};
+      const rawCandidate =
+        addr.suburb ||
+        addr.neighbourhood ||
+        addr.quarter ||
+        addr.town ||
+        addr.village ||
+        addr.municipality ||
+        addr.city_district ||
+        addr.district ||
+        addr.city ||
+        addr.county ||
+        '';
+
+      const preciseName = cleanLocality(rawCandidate, addr.city || addr.town);
+      const city = addr.city || addr.town || '';
+      const country = addr.country || '';
+      const countryCode = addr.country_code ? addr.country_code.toUpperCase() : '';
+      const admin1 = (city && city.toLowerCase() !== preciseName.toLowerCase()) ? city : (addr.state || addr.county || '');
+      const finalName = preciseName || city || 'Current Location';
+
+      const fullDisplayParts = [finalName];
+      if (city && city.toLowerCase() !== finalName.toLowerCase()) fullDisplayParts.push(city);
+      if (country) fullDisplayParts.push(country);
+
+      return {
+        name: finalName,
+        city,
+        country,
+        countryCode,
+        admin1,
+        latitude,
+        longitude,
+        fullDisplay: fullDisplayParts.join(', '),
+      };
+    }
+  } catch (e) {
+    console.warn('Nominatim reverse geocode error or timeout:', e.message);
+  }
+
+  // 3. Graceful fallback when reverse geocoders are unavailable
   return {
     name: 'Current Location',
+    city: '',
     country: '',
     countryCode: '',
     admin1: '',
@@ -307,16 +407,22 @@ function normalizeWeatherData(raw, locationMeta = {}) {
     ? Math.round(hourly.dew_point_2m[startIdx])
     : Math.round(current.temperature_2m - (100 - current.relative_humidity_2m) / 5);
 
+  const locName = locationMeta.name || (raw.latitude != null ? `GPS (${raw.latitude.toFixed(2)}, ${raw.longitude.toFixed(2)})` : 'Current Location');
+  const locCountry = locationMeta.country || '';
+  const locCountryCode = locationMeta.countryCode || '';
+  const locAdmin1 = locationMeta.admin1 || '';
+  const locFullDisplay = locationMeta.fullDisplay || [locName, locAdmin1, locCountry].filter(Boolean).join(', ');
+
   return {
     location: {
-      name: locationMeta.name || 'Athens',
-      country: locationMeta.country || 'Greece',
-      countryCode: locationMeta.countryCode || 'GR',
-      admin1: locationMeta.admin1 || '',
+      name: locName,
+      country: locCountry,
+      countryCode: locCountryCode,
+      admin1: locAdmin1,
       latitude: raw.latitude,
       longitude: raw.longitude,
       timezone: raw.timezone,
-      fullDisplay: locationMeta.fullDisplay || `${locationMeta.name || 'Athens'}, ${locationMeta.country || 'Greece'}`,
+      fullDisplay: locFullDisplay,
     },
     current: {
       temp: Math.round(current.temperature_2m),
