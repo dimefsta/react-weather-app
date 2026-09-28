@@ -83,17 +83,17 @@ function WeatherApp() {
 
           {weatherData && (
             <div className="dashboard-grid">
-              {/* Primary Column: Hero Weather & 7-Day Forecast */}
-              <div className="dashboard-column col-primary">
-                <CurrentWeather weatherData={weatherData} unit={unit} />
-                <DailyForecast dailyData={weatherData.daily} unit={unit} />
-              </div>
+              {/* 1. Current Weather (Hero Focal Point) */}
+              <CurrentWeather weatherData={weatherData} unit={unit} />
 
-              {/* Secondary Column: 24h Hourly Curve & 6 Advanced Metric Cards */}
-              <div className="dashboard-column col-secondary">
-                <HourlyForecast hourlyData={weatherData.hourly} unit={unit} />
-                <WeatherMetrics weatherData={weatherData} unit={unit} />
-              </div>
+              {/* 2. 24-Hour Hourly Timeline */}
+              <HourlyForecast hourlyData={weatherData.hourly} unit={unit} />
+
+              {/* 3. 7-Day Precision Forecast */}
+              <DailyForecast dailyData={weatherData.daily} unit={unit} />
+
+              {/* 4. Advanced Metrics (UV, Wind, Sun, Humidity, etc.) */}
+              <WeatherMetrics weatherData={weatherData} unit={unit} />
             </div>
           )}
         </main>
