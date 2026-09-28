@@ -99,9 +99,40 @@ describe('Weather Utilities', () => {
     expect(cleanLocality('', 'Athens')).toBe('Athens');
   });
 
-  test('resolves precise suburb/neighborhood like Palaio Faliro instead of defaulting to Athens', async () => {
+  test('resolves precise suburb/neighborhood like Palaio Faliro using OpenStreetMap Nominatim', async () => {
     const originalFetch = global.fetch;
     global.fetch = jest.fn((url) => {
+      if (String(url).includes('nominatim')) {
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              address: {
+                suburb: 'Palaio Faliro',
+                municipality: 'Municipality of Palaio Faliro',
+                state: 'Attica',
+                country: 'Greece',
+                country_code: 'gr',
+              },
+            }),
+        });
+      }
+      return Promise.reject(new Error('Unknown url'));
+    });
+
+    const result = await reverseGeocode(37.928, 23.698);
+    expect(result.name).toBe('Palaio Faliro');
+    expect(result.countryCode).toBe('GR');
+    expect(result.fullDisplay).toContain('Palaio Faliro');
+    global.fetch = originalFetch;
+  });
+
+  test('falls back to BigDataCloud when primary reverse geocoder is unavailable', async () => {
+    const originalFetch = global.fetch;
+    global.fetch = jest.fn((url) => {
+      if (String(url).includes('nominatim')) {
+        return Promise.resolve({ ok: false, status: 500 });
+      }
       if (String(url).includes('bigdatacloud')) {
         return Promise.resolve({
           ok: true,
@@ -112,36 +143,6 @@ describe('Weather Utilities', () => {
               countryName: 'Greece',
               countryCode: 'GR',
               principalSubdivision: 'Attiki',
-            }),
-        });
-      }
-      return Promise.reject(new Error('Unknown url'));
-    });
-
-    const result = await reverseGeocode(37.928, 23.698);
-    expect(result.name).toBe('Palaio Faliro');
-    expect(result.city).toBe('Athens');
-    expect(result.fullDisplay).toBe('Palaio Faliro, Athens, Greece');
-    global.fetch = originalFetch;
-  });
-
-  test('falls back to Nominatim when primary reverse geocoder is unavailable', async () => {
-    const originalFetch = global.fetch;
-    global.fetch = jest.fn((url) => {
-      if (String(url).includes('bigdatacloud')) {
-        return Promise.resolve({ ok: false, status: 500 });
-      }
-      if (String(url).includes('nominatim')) {
-        return Promise.resolve({
-          ok: true,
-          json: () =>
-            Promise.resolve({
-              address: {
-                suburb: 'Palaio Faliro',
-                city: 'Athens',
-                country: 'Greece',
-                country_code: 'gr',
-              },
             }),
         });
       }
@@ -199,7 +200,7 @@ describe('WeatherApp Component', () => {
     expect(options).toMatchObject({ enableHighAccuracy: true });
   });
 
-  test('displays friendly toast notification when location access is denied', async () => {
+  test('displays friendly toast notification and falls back to Athens when location access is denied', async () => {
     const mockGetCurrentPosition = jest.fn((success, error) => {
       error({ code: 1, PERMISSION_DENIED: 1, message: 'User denied geolocation' });
     });
@@ -218,6 +219,7 @@ describe('WeatherApp Component', () => {
     await waitFor(() => {
       expect(screen.getByText(/Location permission was denied/i)).toBeInTheDocument();
       expect(screen.getByText(/Search City/i)).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Athens' })).toBeInTheDocument();
     });
   });
 
@@ -235,15 +237,18 @@ describe('WeatherApp Component', () => {
     };
 
     global.fetch = jest.fn((url) => {
-      if (String(url).includes('bigdatacloud')) {
+      if (String(url).includes('nominatim')) {
         return Promise.resolve({
           ok: true,
           json: () =>
             Promise.resolve({
-              locality: 'Palaio Faliro',
-              city: 'Athens',
-              countryName: 'Greece',
-              countryCode: 'GR',
+              address: {
+                suburb: 'Palaio Faliro',
+                municipality: 'Municipality of Palaio Faliro',
+                state: 'Attica',
+                country: 'Greece',
+                country_code: 'gr',
+              },
             }),
         });
       }

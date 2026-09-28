@@ -127,46 +127,32 @@ export const useWeather = () => {
       const { latitude, longitude } = position.coords;
 
       try {
-        // Pass coordinates directly to fetch weather data immediately,
-        // and resolve precise suburb / neighborhood in parallel
-        const [locMeta, weatherResult] = await Promise.all([
-          reverseGeocode(latitude, longitude).catch((err) => {
-            console.warn('Reverse geocode error, falling back to coordinates:', err);
-            return {
-              name: 'Current Location',
-              city: '',
-              country: '',
-              countryCode: '',
-              admin1: '',
-              latitude,
-              longitude,
-              fullDisplay: `GPS Location (${latitude.toFixed(2)}, ${longitude.toFixed(2)})`,
-            };
-          }),
-          fetchWeatherDataByCoords(latitude, longitude, { latitude, longitude }),
-        ]);
+        // Step 1: Reverse-geocode to get the precise neighborhood/suburb (e.g. Palaio Faliro)
+        const locMeta = await reverseGeocode(latitude, longitude).catch((err) => {
+          console.warn('Reverse geocode error, preserving coordinates:', err);
+          return {
+            name: 'Current Location',
+            city: '',
+            country: '',
+            countryCode: '',
+            admin1: '',
+            latitude,
+            longitude,
+            fullDisplay: `GPS Location (${latitude.toFixed(2)}, ${longitude.toFixed(2)})`,
+          };
+        });
 
-        const combinedLocation = {
-          ...weatherResult.location,
-          ...locMeta,
-          latitude,
-          longitude,
-          fullDisplay: locMeta.fullDisplay || `${locMeta.name}${locMeta.country ? `, ${locMeta.country}` : ''}`,
-        };
-
-        const combinedData = {
-          ...weatherResult,
-          location: combinedLocation,
-        };
+        // Step 2: Pass exact latitude and longitude directly to Open-Meteo endpoint
+        const weatherResult = await fetchWeatherDataByCoords(latitude, longitude, locMeta);
 
         const locKey = `${latitude}_${longitude}_${locMeta.name || ''}`;
         lastFetchedKeyRef.current = locKey;
 
-        setWeatherData(combinedData);
-        setLocation(combinedLocation);
+        setWeatherData(weatherResult);
+        setLocation(weatherResult.location);
 
         try {
-          localStorage.setItem(LOCATION_STORAGE_KEY, JSON.stringify(combinedLocation));
+          localStorage.setItem(LOCATION_STORAGE_KEY, JSON.stringify(weatherResult.location));
         } catch (e) {}
 
         setToast({
@@ -192,11 +178,31 @@ export const useWeather = () => {
       setIsLocating(false);
       setLoading(false);
 
+      // Only use Athens as a fallback if geolocation is explicitly denied by the user or throws a permission error
+      if (geoErr && (geoErr.code === 1 || geoErr.code === geoErr.PERMISSION_DENIED)) {
+        const athensFallback = {
+          name: 'Athens',
+          country: 'Greece',
+          countryCode: 'GR',
+          admin1: 'Attiki',
+          latitude: 37.9838,
+          longitude: 23.7278,
+          fullDisplay: 'Athens, Greece',
+        };
+        setLocation(athensFallback);
+        loadWeather(athensFallback);
+        setToast({
+          id: Date.now(),
+          type: 'warning',
+          message: 'Location permission was denied. Defaulting to Athens. You can search for your exact location above.',
+          actionLabel: 'Search City',
+        });
+        return;
+      }
+
       let msg = 'Failed to retrieve your location.';
       if (geoErr) {
-        if (geoErr.code === 1 || geoErr.code === geoErr.PERMISSION_DENIED) {
-          msg = 'Location permission was denied. Please allow location access or search manually.';
-        } else if (geoErr.code === 2 || geoErr.code === geoErr.POSITION_UNAVAILABLE) {
+        if (geoErr.code === 2 || geoErr.code === geoErr.POSITION_UNAVAILABLE) {
           msg = 'Location information is currently unavailable. Please search for your city or suburb.';
         } else if (geoErr.code === 3 || geoErr.code === geoErr.TIMEOUT) {
           msg = 'Location request timed out. Please try again or search manually.';
@@ -212,6 +218,12 @@ export const useWeather = () => {
     };
 
     const handleError = (geoErr) => {
+      // If permission is denied, trigger permission fallback to Athens immediately
+      if (geoErr && (geoErr.code === 1 || geoErr.code === geoErr.PERMISSION_DENIED)) {
+        handleFinalError(geoErr);
+        return;
+      }
+
       // If high accuracy times out, perform a rapid fallback retry with standard accuracy
       if (geoErr && (geoErr.code === 3 || geoErr.code === geoErr.TIMEOUT)) {
         navigator.geolocation.getCurrentPosition(
@@ -226,7 +238,7 @@ export const useWeather = () => {
     };
 
     navigator.geolocation.getCurrentPosition(handleSuccess, handleError, geoOptions);
-  }, []);
+  }, [loadWeather]);
 
   return {
     weatherData,
