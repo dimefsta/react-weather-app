@@ -36,15 +36,15 @@ function WeatherApp() {
 
   return (
     <div className={`weather-app-root theme-${activeTheme}`}>
-      {/* Dynamic ambient background glow */}
-      <div className="ambient-background">
+      {/* Dynamic atmospheric ambient lighting blobs */}
+      <div className="ambient-background" aria-hidden="true">
         <div className="ambient-blob blob-1" />
         <div className="ambient-blob blob-2" />
         <div className="ambient-blob blob-3" />
       </div>
 
       <div className="app-container">
-        {/* Top Navigation & Controls */}
+        {/* Top Header & Search Navigation */}
         <Header
           onSelectLocation={selectLocation}
           onUseCurrentLocation={useCurrentLocation}
@@ -59,7 +59,7 @@ function WeatherApp() {
           onToggleFavoritesBar={() => setShowFavoritesBar((prev) => !prev)}
         />
 
-        {/* Saved Favorites Quick Access */}
+        {/* Favorite Cities Quick Access Bar */}
         {showFavoritesBar && (
           <FavoritesBar
             favorites={favorites}
@@ -69,7 +69,7 @@ function WeatherApp() {
           />
         )}
 
-        {/* Main Dashboard Layout */}
+        {/* Main Weather Dashboard */}
         <main className="dashboard-content">
           {loading && !weatherData && <SkeletonLoader />}
 
@@ -83,13 +83,13 @@ function WeatherApp() {
 
           {weatherData && (
             <div className="dashboard-grid">
-              {/* Left Column: Hero Current Weather & 7-Day Forecast */}
+              {/* Primary Column: Hero Weather & 7-Day Forecast */}
               <div className="dashboard-column col-primary">
                 <CurrentWeather weatherData={weatherData} unit={unit} />
                 <DailyForecast dailyData={weatherData.daily} unit={unit} />
               </div>
 
-              {/* Right Column: 24h Hourly Timeline & 6 Advanced Metric Cards */}
+              {/* Secondary Column: 24h Hourly Curve & 6 Advanced Metric Cards */}
               <div className="dashboard-column col-secondary">
                 <HourlyForecast hourlyData={weatherData.hourly} unit={unit} />
                 <WeatherMetrics weatherData={weatherData} unit={unit} />

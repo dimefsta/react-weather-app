@@ -45,10 +45,13 @@ function WeatherMetrics({ weatherData, unit }) {
       <div className="metric-card uv-card">
         <div className="metric-card-top">
           <div className="metric-header-title">
-            <Sun size={17} className="metric-title-icon" />
+            <Sun size={18} className="metric-title-icon text-amber-400" color="#fbbf24" />
             <span>UV Index</span>
           </div>
-          <span className="metric-badge" style={{ backgroundColor: `${current.uvColor}25`, color: current.uvColor }}>
+          <span
+            className="metric-badge font-bold"
+            style={{ backgroundColor: `${current.uvColor}30`, color: current.uvColor, border: `1px solid ${current.uvColor}50` }}
+          >
             {current.uvLevel}
           </span>
         </div>
@@ -62,6 +65,7 @@ function WeatherMetrics({ weatherData, unit }) {
             style={{
               width: `${Math.min(100, (current.uvIndex / 12) * 100)}%`,
               backgroundColor: current.uvColor,
+              boxShadow: `0 0 10px ${current.uvColor}`,
             }}
           />
         </div>
@@ -78,7 +82,7 @@ function WeatherMetrics({ weatherData, unit }) {
       <div className="metric-card wind-card">
         <div className="metric-card-top">
           <div className="metric-header-title">
-            <Wind size={17} className="metric-title-icon" />
+            <Wind size={18} className="metric-title-icon text-sky-400" color="#38bdf8" />
             <span>Wind & Gusts</span>
           </div>
           <span className="metric-badge neutral">
@@ -86,7 +90,7 @@ function WeatherMetrics({ weatherData, unit }) {
           </span>
         </div>
         <div className="metric-value-box">
-          <span className="metric-number">{formatSpeed(current.windSpeed, unit)}</span>
+          <span className="metric-number text-sky-400">{formatSpeed(current.windSpeed, unit)}</span>
         </div>
         <div className="wind-compass-row">
           <div
@@ -111,7 +115,7 @@ function WeatherMetrics({ weatherData, unit }) {
       <div className="metric-card sun-card">
         <div className="metric-card-top">
           <div className="metric-header-title">
-            <Sunrise size={17} className="metric-title-icon" />
+            <Sunrise size={18} className="metric-title-icon text-amber-400" color="#fbbf24" />
             <span>Sun Schedule</span>
           </div>
           <span className="metric-badge neutral">
@@ -153,13 +157,13 @@ function WeatherMetrics({ weatherData, unit }) {
       <div className="metric-card humidity-card">
         <div className="metric-card-top">
           <div className="metric-header-title">
-            <Droplets size={17} className="metric-title-icon" />
+            <Droplets size={18} className="metric-title-icon text-cyan-400" color="#06b6d4" />
             <span>Humidity & Air</span>
           </div>
           <span className="metric-badge neutral">{comfort.label}</span>
         </div>
         <div className="metric-value-box">
-          <span className="metric-number">{current.humidity}</span>
+          <span className="metric-number text-cyan-400">{current.humidity}</span>
           <span className="metric-unit">%</span>
         </div>
         <div className="metric-sub-bar">
@@ -174,7 +178,7 @@ function WeatherMetrics({ weatherData, unit }) {
       <div className="metric-card visibility-card">
         <div className="metric-card-top">
           <div className="metric-header-title">
-            <Eye size={17} className="metric-title-icon" />
+            <Eye size={18} className="metric-title-icon text-indigo-400" color="#818cf8" />
             <span>Visibility</span>
           </div>
           <span className="metric-badge neutral">{visibilityStatus}</span>
@@ -183,7 +187,7 @@ function WeatherMetrics({ weatherData, unit }) {
           <span className="metric-number">{formatDistance(current.visibility, unit)}</span>
         </div>
         <div className="pressure-sub-row">
-          <Gauge size={15} className="pressure-icon" />
+          <Gauge size={15} className="pressure-icon text-indigo-400" />
           <span>Pressure: <strong>{current.pressure} hPa</strong></span>
           <span className="pressure-tag">({pressureStatus})</span>
         </div>
@@ -194,7 +198,7 @@ function WeatherMetrics({ weatherData, unit }) {
       <div className="metric-card cloud-card">
         <div className="metric-card-top">
           <div className="metric-header-title">
-            <Cloud size={17} className="metric-title-icon" />
+            <Cloud size={18} className="metric-title-icon text-blue-400" color="#60a5fa" />
             <span>Cloud & Moisture</span>
           </div>
           <span className="metric-badge neutral">
@@ -202,7 +206,7 @@ function WeatherMetrics({ weatherData, unit }) {
           </span>
         </div>
         <div className="metric-value-box">
-          <span className="metric-number">{current.cloudCover}</span>
+          <span className="metric-number text-blue-400">{current.cloudCover}</span>
           <span className="metric-unit">%</span>
         </div>
         <div className="cloud-bar-track">
