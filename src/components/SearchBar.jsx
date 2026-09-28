@@ -95,7 +95,7 @@ function SearchBar({ onSelectLocation }) {
   };
 
   return (
-    <div className="search-bar-wrapper" ref={containerRef}>
+    <div className="search-bar-wrapper relative z-50 w-full" ref={containerRef}>
       <div className="search-input-box">
         <Search className="search-icon" size={18} />
         <input
@@ -123,7 +123,7 @@ function SearchBar({ onSelectLocation }) {
       </div>
 
       {isOpen && (
-        <ul className="search-dropdown" role="listbox">
+        <ul className="search-dropdown absolute top-[calc(100%+6px)] left-0 right-0 z-[9999]" role="listbox">
           {suggestions.map((item, index) => {
             const isSelected = index === activeIndex;
             return (

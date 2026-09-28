@@ -24,7 +24,7 @@ function Header({
   const isCurrentFav = currentLocation && isFavorite(currentLocation.name);
 
   return (
-    <header className="app-header">
+    <header className="app-header relative z-50 overflow-visible">
       <div className="header-left">
         <div className="brand-logo">
           <div className="logo-icon-wrapper">
@@ -37,7 +37,7 @@ function Header({
         </div>
       </div>
 
-      <div className="header-center">
+      <div className="header-center relative z-50 overflow-visible">
         <SearchBar onSelectLocation={onSelectLocation} />
       </div>
 
